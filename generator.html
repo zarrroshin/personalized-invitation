@@ -166,7 +166,7 @@ body{min-height:100vh;background:#f3f0e8;display:flex;justify-content:center;ali
 </head>
 <body>
 <main class="invitation" aria-label="دعوت‌نامه نمایشگاه مدیریت شهری">
-<img class="poster" src="assets/invitation-design.png" alt="دعوت‌نامه هفتمین نمایشگاه جامع مدیریت شهری، خدمات شهری، حمل‌ونقل و ترافیک شهری شیراز">
+<img class="poster" src="assets/invitation-design.png?v=2" alt="دعوت‌نامه هفتمین نمایشگاه جامع مدیریت شهری، خدمات شهری، حمل‌ونقل و ترافیک شهری شیراز">
 <div class="guest-name" id="guestName">نام مهمان</div>
 <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=نمایشگاه+بین+المللی+شیراز" target="_blank" rel="noopener" aria-label="مشاهده موقعیت غرفه"></a>
 <a class="phone-link" href="tel:09131418828" aria-label="تماس با شرکت پرستوی جنوب شرق"></a>
@@ -268,10 +268,10 @@ window.addEventListener("resize",()=>{nameEl.style.fontSize="";fitName()});
       );
     }
 
-    if (!standalone.includes("src=\"assets/invitation-design.png\"")) {
+    if (!standalone.includes('src="assets/invitation-design.png')) {
       throw new Error("قالب دعوت‌نامه تصویر زمینه را ندارد.");
     }
-    standalone = standalone.replace("src=\"assets/invitation-design.png\"", `src="${posterDataUrl}"`);
+    standalone = standalone.replace(/src="assets\/invitation-design\.png[^"]*"/, `src="${posterDataUrl}"`);
     return standalone;
   }
 
