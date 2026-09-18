@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>سازنده دعوت‌نامه</title>
+  <style>
+    :root { --teal:#034c59; --gold:#b88925; --cream:#f5f1e8; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; background:var(--cream);
+      font-family:Tahoma,"Segoe UI",Arial,sans-serif; color:#173f49;
+      display:flex; justify-content:center; padding:28px 16px;
+    }
+    .card {
+      width:min(760px,100%); background:#fff; border:1px solid #dfd5c2;
+      border-radius:22px; padding:28px; box-shadow:0 15px 45px rgba(0,0,0,.08);
+    }
+    h1 { margin:0 0 8px; color:var(--teal); font-size:28px; }
+    p { line-height:1.9; margin:8px 0 20px; }
+    label { display:block; margin-bottom:8px; font-weight:700; }
+    input {
+      width:100%; padding:15px 16px; border:1px solid #cfc5b4;
+      border-radius:12px; font-size:18px; font-family:inherit; outline:none;
+    }
+    input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,137,37,.12); }
+    .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    button {
+      border:0; border-radius:12px; padding:13px 18px; cursor:pointer;
+      font:inherit; font-weight:700;
+    }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .primary { background:var(--teal); color:#fff; }
+    .secondary { background:#eee8dc; color:#173f49; }
+    .output { margin-top:22px; display:grid; gap:12px; }
+    .box {
+      background:#f8f6f0; border:1px dashed #cbbd9f; border-radius:12px;
+      padding:13px; word-break:break-all; direction:ltr; text-align:left;
+    }
+    .hint { font-size:14px; color:#5f686a; }
+    .ok { color:#26734a; font-weight:700; min-height:24px; }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <h1>سازنده دعوت‌نامه شخصی‌سازی‌شده</h1>
+    <p>
+      نام مهمان را وارد کنید. این صفحه هم لینک شخصی‌سازی‌شده می‌سازد،
+      هم یک فایل HTML مستقل که نام همان شخص داخل آن ذخیره شده است.
+    </p>
+
+    <label for="name">نام و نام خانوادگی مهمان</label>
+    <input id="name" placeholder="مثلاً: علی رضایی" autocomplete="off">
+
+    <div class="row">
+      <button class="primary" id="make">ساخت دعوت‌نامه</button>
+      <button class="secondary" id="download">دانلود HTML مستقل</button>
+      <button class="secondary" id="copy">کپی لینک</button>
+    </div>
+
+    <div class="output">
+      <div>
+        <strong>لینک شخصی‌سازی‌شده</strong>
+        <div class="box" id="url">—</div>
+      </div>
+      <div class="ok" id="status"></div>
+      <div class="hint">
+        لینک شخصی‌سازی‌شده وقتی کار می‌کند که این پوشه روی هاست باشد.
+        دکمه «دانلود HTML مستقل» یک فایل تکی می‌سازد که عکس داخل خود فایل است؛
+        همان را می‌توانید بفرستید و گیرنده باید آن را با مرورگر باز کند.
+        بعضی پیام‌رسان‌ها فایل HTML را خوب باز نمی‌کنند؛ در آن حالت لینک روی هاست مطمئن‌تر است.
+      </div>
+    </div>
+  </section>
+
+<script>
+  const nameInput = document.getElementById("name");
+  const urlBox = document.getElementById("url");
+  const status = document.getElementById("status");
+
+  function getName() {
+    const name = nameInput.value.trim();
+    if (!name) {
+      status.textContent = "لطفاً نام مهمان را وارد کنید.";
+      return null;
+    }
+    status.textContent = "";
+    return name;
+  }
+
+  function makeUrl() {
+    const name = getName();
+    if (!name) return null;
+    const url = new URL("invitation.html", location.href);
+    url.searchParams.set("name", name);
+    urlBox.textContent = url.href;
+    return url;
+  }
+
+  document.getElementById("make").onclick = () => {
+    const url = makeUrl();
+    if (url) window.open(url.href, "_blank", "noopener");
+  };
+
+  document.getElementById("copy").onclick = async () => {
+    const url = makeUrl();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url.href);
+      status.textContent = "لینک کپی شد.";
+    } catch {
+      status.textContent = "کپی خودکار ممکن نشد؛ لینک را از کادر بالا کپی کنید.";
+    }
+  };
+
+  const FALLBACK_TEMPLATE = `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#034c59">
+<title>دعوت‌نامه نمایشگاه مدیریت شهری</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{min-height:100vh;background:#f3f0e8;display:flex;justify-content:center;align-items:flex-start}
+.invitation{width:min(100vw,1024px);position:relative;overflow:hidden;line-height:1}
+.poster{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+.guest-name{
+  position:absolute;
+  left:50%;
+  top:27.78%;
+  transform:translate(-50%,-50%);
+  width:43%;
+  min-height:3.8%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 1.5%;
+  color:#fff;
+  font-family:Tahoma,"Segoe UI",Arial,sans-serif;
+  font-weight:700;
+  font-size:clamp(22px,4.15vw,43px);
+  line-height:1.15;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  direction:rtl;
+  z-index:3;
+  text-shadow:0 1px 1px rgba(0,0,0,.12);
+}
+.map-link{position:absolute;left:34.5%;top:67.5%;width:31%;height:5.1%;border-radius:999px;z-index:4}
+.phone-link{position:absolute;left:5.5%;top:87%;width:23%;height:4.8%;z-index:4}
+@media(max-width:600px){
+  .guest-name{
+    top:27.78%;
+    width:43%;
+    font-size:clamp(17px,5.15vw,31px);
+  }
+  .map-link{left:33%;width:34%}
+  .phone-link{left:4%;width:29%}
+}
+@media print{body{background:#fff}.invitation{width:100%}}
+</style>
+</head>
+<body>
+<main class="invitation" aria-label="دعوت‌نامه نمایشگاه مدیریت شهری">
+<img class="poster" src="assets/invitation-design.png" alt="دعوت‌نامه هفتمین نمایشگاه جامع مدیریت شهری، خدمات شهری، حمل‌ونقل و ترافیک شهری شیراز">
+<div class="guest-name" id="guestName">نام مهمان</div>
+<a class="map-link" href="https://www.google.com/maps/search/?api=1&query=نمایشگاه+بین+المللی+شیراز" target="_blank" rel="noopener" aria-label="مشاهده موقعیت غرفه"></a>
+<a class="phone-link" href="tel:09008608828" aria-label="تماس با شرکت پرستوی جنوب شرق"></a>
+</main>
+<script>
+const BAKED_NAME="";
+const params=new URLSearchParams(location.search);
+const name=(params.get("name")||BAKED_NAME).trim();
+const nameEl=document.getElementById("guestName");
+if(name){
+  nameEl.textContent=name;
+  document.title=\`دعوت‌نامه \${name}\`;
+}
+function fitName(){
+  const max=window.innerWidth<=600 ? 31 : 43;
+  let size=parseFloat(getComputedStyle(nameEl).fontSize);
+  const min=window.innerWidth<=600 ? 14 : 18;
+  while(nameEl.scrollWidth>nameEl.clientWidth && size>min){
+    size-=1;
+    nameEl.style.fontSize=size+"px";
+  }
+}
+window.addEventListener("load",fitName);
+window.addEventListener("resize",()=>{nameEl.style.fontSize="";fitName()});
+<\/script>
+</body>
+</html>`;
+
+  function escapeHtml(value) {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error("خواندن فایل ممکن نشد."));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function pickPosterFile() {
+    return new Promise((resolve, reject) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/png,image/*";
+      input.onchange = () => {
+        const file = input.files && input.files[0];
+        if (!file) {
+          reject(new Error("فایل تصویر انتخاب نشد."));
+          return;
+        }
+        blobToDataUrl(file).then(resolve, reject);
+      };
+      status.textContent = "دسترسی مستقیم به عکس ممکن نشد. فایل assets/invitation-design.png را انتخاب کنید.";
+      input.click();
+    });
+  }
+
+  async function loadTemplate() {
+    try {
+      const response = await fetch(new URL("invitation.html", location.href).href, {cache: "no-store"});
+      if (!response.ok) throw new Error("template http " + response.status);
+      return await response.text();
+    } catch {
+      return FALLBACK_TEMPLATE;
+    }
+  }
+
+  async function loadPosterDataUrl() {
+    try {
+      const response = await fetch(new URL("assets/invitation-design.png", location.href).href, {cache: "no-store"});
+      if (!response.ok) throw new Error("poster http " + response.status);
+      return await blobToDataUrl(await response.blob());
+    } catch {
+      return pickPosterFile();
+    }
+  }
+
+  function buildStandalone(template, name, posterDataUrl) {
+    const safeName = escapeHtml(name);
+    let standalone = template;
+
+    if (standalone.includes('const BAKED_NAME="";')) {
+      standalone = standalone.replace('const BAKED_NAME="";', `const BAKED_NAME=${JSON.stringify(name)};`);
+    } else if (standalone.includes("const BAKED_NAME=\"\";")) {
+      standalone = standalone.replace("const BAKED_NAME=\"\";", `const BAKED_NAME=${JSON.stringify(name)};`);
+    }
+
+    if (standalone.includes('<div class="guest-name" id="guestName">نام مهمان</div>')) {
+      standalone = standalone.replace(
+        '<div class="guest-name" id="guestName">نام مهمان</div>',
+        `<div class="guest-name" id="guestName">${safeName}</div>`
+      );
+    }
+
+    if (!standalone.includes("src=\"assets/invitation-design.png\"")) {
+      throw new Error("قالب دعوت‌نامه تصویر زمینه را ندارد.");
+    }
+    standalone = standalone.replace("src=\"assets/invitation-design.png\"", `src="${posterDataUrl}"`);
+    return standalone;
+  }
+
+  document.getElementById("download").onclick = async () => {
+    const name = getName();
+    if (!name) return;
+
+    const button = document.getElementById("download");
+    button.disabled = true;
+    status.textContent = "در حال ساخت فایل مستقل...";
+
+    try {
+      const [template, posterDataUrl] = await Promise.all([loadTemplate(), loadPosterDataUrl()]);
+      const standalone = buildStandalone(template, name, posterDataUrl);
+      const blob = new Blob([standalone], {type:"text/html;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `invitation-${name.replace(/[^\p{L}\p{N}_-]+/gu, "-")}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      status.textContent = "فایل HTML مستقل آماده شد. همین یک فایل را بفرستید و با مرورگر باز شود.";
+    } catch (error) {
+      status.textContent = error && error.message
+        ? error.message
+        : "ساخت فایل مستقل ممکن نشد.";
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  nameInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("make").click();
+  });
+</script>
+</body>
+</html>
